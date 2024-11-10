@@ -3,8 +3,12 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
+async function connectDB() {
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('DB connected');
-    })
-    .catch((err) => console.log('DB connection error:', err));
+    } catch (err) {
+        console.log('DB connection error:', err);
+    }
+}
+connectDB();
