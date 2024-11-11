@@ -26,7 +26,7 @@ const Register = async (req,res)=>{
 const Login = async(req, res) =>{
     try {
         const {email, password}= req.body
-        const FindUser= await userModel.findOne({email})
+        const FindUser= await userModel.findOne({email}).select("+password");
         if(!FindUser){
             return res. status(404).json({success:false, message:"User not found please register"})
         }
