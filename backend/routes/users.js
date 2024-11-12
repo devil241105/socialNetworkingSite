@@ -5,3 +5,8 @@ import {
     addRemoveFriend,
 } from '../controllers/users.js';
 import {jwtAuthMiddleware} from '../middlewares/jwt.js';
+
+const router = express.Router();
+
+
+router.get("./id" ,jwtAuthMiddleware, getUser)
