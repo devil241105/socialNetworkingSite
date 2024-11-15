@@ -1,3 +1,5 @@
+//register, login, logout
+
 
 import userModel from "../models/Auth.js";
 import bcrypt from "bcryptjs";
