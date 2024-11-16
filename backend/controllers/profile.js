@@ -1,4 +1,4 @@
-// followUser deleteProfile myProfile
+// followUser deleteProfile myProfile getUserProfile getAllUser
 
 import userModel from "../models/Auth.js";
 import postModel from "../models/post.js";
@@ -121,5 +121,47 @@ const myProfile = async (req, res) =>{
 }
 
 
+const getUserProfile = async (req,res) => {
+    try{
+        const user = await userModel.findById(req.params.id).populate("posts");
 
-export { followUser, deleteProfile, myProfile };
+        if(!user){
+            return res.status(404).json({
+                success: false,
+                message: "user not found",
+            });
+        }
+        
+
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+
+const getAllUsers = async(req, res) => {
+    try{
+        const users = await userModel.find({});
+
+        res.status(200).json({
+            success: true,
+            users,
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+
+
+export { followUser, deleteProfile, myProfile, getUserProfile, getAllUsers };

@@ -1,4 +1,4 @@
-//createPost deletePost likeAndUnlikePost getPostofFollowing
+//createPost deletePost likeAndUnlikePost getPostofFollowing commentOnPost deleteComment
 
 import userModel from "../models/Auth.js";
 import postModel from "../models/post.js";
@@ -144,5 +144,104 @@ const getPostOfFollowing = async (req,res) => {
 }
 
 
+const commentOnPost = async(req,res) => {
+    try{
+        const post = await postModel.findById(req.params.id);
 
-export { createPost, likeAndUnlikePost, deletePost, getPostOfFollowing }; 
+        if(!post){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found",
+            });
+        }
+
+        let commentIndex = -1;
+        post.Comments.forEach((item, index) => {
+            console.log(item);
+            if((item.user.toString) === req.user._id.toString()){
+                commentIndex = index;
+            }
+        });
+
+        if(commentIndex !== -1){
+            post.Comments[commentIndex].Comment = req.body.comment;
+            await post.save();
+            return res.status(200).json({
+                success: true,
+                message: "Comment updated",
+            });
+        }
+        else{
+            post.Comments.push({
+                user: req.user._id,
+                comment: req.bosy.comment,
+            });
+            await post.save();
+            return res.status(200).json({
+                success: true,
+                message: "Comment added",
+            });
+        }
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+
+const deleteComment = async(req,res) => {
+    try{
+        const post = await postModel.findById(req.params.id);
+
+        if(!post){
+            return res.status(404).json({
+                success: false,
+                message: "Post not found",
+            });
+        }
+        if(post.owner.toString()===req.user._id.toString()){
+            if (req.body.commentId==undefined){
+                return res.status(404).json({
+                    success: false,
+                    message: "comment ID required",
+                });
+            }
+            post.Comments.forEach((item, index) => {
+                if (item._id.toString()=== req.body.commentId.toString()){
+                    return post.Comments.splice(index,1);
+                }
+            });
+            await post.save();
+
+            res.status(200).json({
+                success: true,
+                message: "you deleted the comment"
+            });
+        }
+        else{
+            post.Comments.forEach((item, index) => {
+                console.log(item);
+                if((item.user.toString) === req.user._id.toString()){
+                    return post.Comments.splice(index,1);
+                }
+            });
+            await post.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "your comment has been deleted"
+            });
+        }
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
+
+
+export { createPost, likeAndUnlikePost, deletePost, getPostOfFollowing, commentOnPost, deleteComment }; 
