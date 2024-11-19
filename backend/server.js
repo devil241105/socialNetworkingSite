@@ -10,10 +10,16 @@ const app = express();
 const port = 3000;
 
 
+var corsOptions = {
+    origin: 'http://localhost:5173',
+    optionsSuccessStatus: 200
+  }
+
 
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+
 
 app.use('/auth', AutRoutes)
 app.use('', postRoutes)
