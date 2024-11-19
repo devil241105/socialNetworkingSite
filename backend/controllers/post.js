@@ -181,7 +181,7 @@ const commentOnPost = async(req,res) => {
         else{
             post.Comments.push({
                 user: req.user.userId,
-                comment: req.body.comment,
+                Comment: req.body.comment,
             });
             await post.save();
             return res.status(200).json({

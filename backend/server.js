@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import AutRoutes from './routes/Auth.js';
 import postRoutes from './routes/post.js';
+import profileRoutes from './routes/profile.js';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(cookieParser());
 
 app.use('/auth', AutRoutes)
 app.use('', postRoutes)
+app.use('', profileRoutes)
 
 
 app.listen(port, () => {

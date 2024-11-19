@@ -8,7 +8,7 @@ import postModel from "../models/post.js";
 const followUser = async (req, res)=> {
     try{
         const userToFollow = await userModel.findById(req.params.id);
-        const loggedInUser = await userModel.findById(req.user._id);
+        const loggedInUser = await userModel.findById(req.user.userId);
 
         if(!userToFollow){
             return res.status(404).json({
@@ -25,7 +25,7 @@ const followUser = async (req, res)=> {
                 await loggedInUser.save();
                 await userToFollow.save();
 
-            return res.status(400).json({
+            return res.status(200).json({
                 success: true,
                 message: "User Unfollowed",
             });
@@ -55,7 +55,7 @@ const followUser = async (req, res)=> {
 
 const deleteProfile = async(req, res) =>{
     try{
-        const user = await userModel.findById(req.user._id);
+        const user = await userModel.findById(req.user.userId);
         const posts = user.posts;
         const followers = user.followers;
         const following= user.following;
@@ -105,7 +105,7 @@ const deleteProfile = async(req, res) =>{
 
 const myProfile = async (req, res) =>{
     try{
-        const user = await userModel.findById(req.user._id).populate("posts");
+        const user = await userModel.findById(req.user.userId).populate("posts");
 
 
         res.status(200).json({
