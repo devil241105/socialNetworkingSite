@@ -4,6 +4,8 @@
 import userModel from "../models/Auth.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import {sendEmail} from "../middlewares/sendEmail.js"
+import crypto from 'crypto';
 
 const Register = async (req, res) => {
     try {
@@ -76,4 +78,104 @@ const Logout = async (req, res) => {
     }
 };
 
-export { Register, Login, Logout };
+
+
+const forgetPassword = async (req,res) => {
+    try{
+        const user = await userModel.findOne({email:req.body.email});
+
+        if(!user){
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const resetPasswordToken = user.getResetPasswordToken();
+        await user.save();
+        const resetUrl = `${req.protocol}://${req.get("host")}/auth/password/reset/${resetPasswordToken}`;
+        const message = `reset your password by clicking on the link below \n\n ${resetUrl}`
+
+        try{
+            await sendEmail({
+                email: user.email,
+                subject: "Reset Password",
+                message,
+            });
+        return res.status(200).json({
+            success: true,
+            message: `Email sent to ${user.email}`
+        });
+        }catch(error){
+            user.resetPasswordToken=undefined;
+            user.resetPasswordExpire=undefined;
+            await user.save();
+
+            res.status(500).json({
+                success: false,
+                message: error.message,
+            });
+        }
+
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
+
+
+const resetPassword = async (req, res) => {
+    try {
+        // Debug the incoming token
+        console.log("Token received:", req.params.token);
+
+        // Hash the received token
+        const resetPasswordToken = crypto
+            .createHash("sha256")
+            .update(req.params.token)
+            .digest("hex");
+
+        console.log("Hashed Token:", resetPasswordToken); // Debug hashed token
+
+        // Find the user with the matching token and a valid expiration
+        const user = await userModel.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Token is invalid or has expired",
+            });
+        }
+
+        // Debug user found
+        console.log("User found:", user);
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        // Update user password and clear reset fields
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        // Save updated user
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password reset successful",
+        });
+    } catch (error) {
+        console.error("Reset password error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
+
+
+export { Register, Login, Logout, forgetPassword, resetPassword };
