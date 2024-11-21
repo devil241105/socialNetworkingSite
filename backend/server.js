@@ -13,7 +13,7 @@ const port = 3000;
 var corsOptions = {
     origin: 'http://localhost:5173',
     optionsSuccessStatus: 200,
-    Credentials: true,
+    withCredentials: true,
   }
 
 
