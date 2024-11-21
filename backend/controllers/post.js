@@ -1,45 +1,78 @@
 //createPost deletePost likeAndUnlikePost getPostofFollowing commentOnPost deleteComment
 
+import cloudinary from 'cloudinary';
 import userModel from "../models/Auth.js";
 import postModel from "../models/post.js";
 
 
-const createPost = async (req,res) => {
-    try{
-        const newPostData={
-            caption : req.body.caption,
-            image: {
-                public_id: "req.body.public_id",
-                url: "req.body.url",
-            },
-            owner: req.user.userId
-        };
-        console.log(req.user.userId);
+// const createPost = async (req,res) => {
+//     try{
+//         const newPostData={
+//             caption : req.body.caption,
+//             image: {
+//                 public_id: "req.body.public_id",
+//                 url: "req.body.url",
+//             },
+//             owner: req.user.userId
+//         };
+//         console.log(req.user.userId);
 
-        const post = await postModel.create(newPostData);
-        console.log(post);
+//         const post = await postModel.create(newPostData);
+//         console.log(post);
 
-        const user = await userModel.findById(req.user.userId);
-        console.log(post._id);
+//         const user = await userModel.findById(req.user.userId);
+//         console.log(post._id);
 
-        user.posts.push(post._id);
+//         user.posts.push(post._id);
 
-        await user.save();
-        res.status(201).json({
-            success: true,
-            post,
-        });
-    }catch (error) {
-        console.error("Post creation error:", error.message);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-            error: error.message,
-        });
+//         await user.save();
+//         res.status(201).json({
+//             success: true,
+//             post,
+//         });
+//     }catch (error) {
+//         console.error("Post creation error:", error.message);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Internal Server Error",
+//             error: error.message,
+//         });
+//     }
+// };
+
+const createPost = async (req, res) => {
+    try {
+      const { caption } = req.body;
+      const { path, filename } = req.file;
+  
+      const newPostData = {
+        caption,
+        image: {
+          public_id: filename, // Public ID from Cloudinary
+          url: path,           // URL of the uploaded image
+        },
+        owner: req.user.userId,
+      };
+  
+      const post = await postModel.create(newPostData);
+      const user = await userModel.findById(req.user.userId);
+  
+      user.posts.push(post._id);
+      await user.save();
+  
+      res.status(201).json({
+        success: true,
+        post,
+      });
+    } catch (error) {
+      console.error("Error creating post:", error.message);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
     }
-};
-
-
+  };
+  
 
 const deletePost = async(req,res)=>{
     try{
@@ -182,6 +215,7 @@ const commentOnPost = async(req,res) => {
             post.Comments.push({
                 user: req.user.userId,
                 Comment: req.body.comment,
+
             });
             await post.save();
             return res.status(200).json({

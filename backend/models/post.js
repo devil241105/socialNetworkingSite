@@ -2,11 +2,17 @@ import mongoose from 'mongoose';
 
 const postSchema = new mongoose.Schema({
 
-    caption: String,
+    caption: {
+        type:String,
+        required: true,
+    },
 
     image:{
         public_id: String,
-        url: String,
+        url: {
+            type:String,
+            required: true,
+        }
     },
 
     owner:{
