@@ -54,15 +54,14 @@ const Login = async (req, res) => {
         }
 
         const token = jwt.sign({ userId: foundUser._id }, process.env.JWT_SECRET, { expiresIn: "3d" });
+       
 
-        res.cookie("token", token, {
+        return res.cookie("token", token, {
             secure: true, 
             httpOnly: true,
             sameSite:'None',
             maxAge: 3 * 24 * 3600 * 1000,
-        });
-
-        return res.status(200).json({ success: true, message: "Login successful", user: foundUser, token });
+        }).status(200).json({ success: true, message: "Login successful", user: foundUser, token });
     } catch (error) {
         console.error("Login error:", error.message);
         return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
