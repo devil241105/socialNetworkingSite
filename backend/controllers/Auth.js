@@ -93,6 +93,7 @@ const forgetPassword = async (req,res) => {
         const resetPasswordToken = user.getResetPasswordToken();
         await user.save();
         const resetUrl = `${req.protocol}://${req.get("host")}/auth/password/reset/${resetPasswordToken}`;
+        console.log(resetUrl);
         const message = `reset your password by clicking on the link below \n\n ${resetUrl}`
 
         try{
@@ -126,18 +127,15 @@ const forgetPassword = async (req,res) => {
 
 const resetPassword = async (req, res) => {
     try {
-        // Debug the incoming token
-        console.log("Token received:", req.params.token);
+        console.log("Token received:", req.params.token);// debug log
 
-        // Hash the received token
         const resetPasswordToken = crypto
             .createHash("sha256")
             .update(req.params.token)
             .digest("hex");
 
-        console.log("Hashed Token:", resetPasswordToken); // Debug hashed token
+        console.log("Hashed Token:", resetPasswordToken);// debug log
 
-        // Find the user with the matching token and a valid expiration
         const user = await userModel.findOne({
             resetPasswordToken,
             resetPasswordExpire: { $gt: Date.now() },
@@ -150,18 +148,14 @@ const resetPassword = async (req, res) => {
             });
         }
 
-        // Debug user found
         console.log("User found:", user);
 
-        // Hash the new password
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        // Update user password and clear reset fields
         user.password = hashedPassword;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 
-        // Save updated user
         await user.save();
 
         res.status(200).json({

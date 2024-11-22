@@ -10,3 +10,4 @@ profileRoutes.get('/user/:id',jwtAuthMiddleware, getUserProfile);
 profileRoutes.get('/users',jwtAuthMiddleware, getAllUsers);
 
 export default profileRoutes
+
