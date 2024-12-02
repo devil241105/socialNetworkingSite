@@ -9,28 +9,51 @@ import crypto from 'crypto';
 
 const Register = async (req, res) => {
     try {
-        const { userName, email, password, user = "user" } = req.body;
-        const existingUser = await userModel.findOne({ email }).select("+password");
-        if (existingUser) {
-            return res.status(303).json({ success: false, message: "User already exists. Please log in." });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = new userModel({
-            userName,
-            email,
-            password: hashedPassword,
+      const { userName, email, password } = req.body;
+  
+      if (!userName || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required: userName, email, password",
         });
-
-        await newUser.save();
-
-        res.status(200).json({ success: true, message: "User registered successfully", User: newUser });
+      }
+  
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "File upload is required",
+        });
+      }
+  
+      const { path: url, filename: public_id } = req.file;
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const newUser = new userModel({
+        userName,
+        email,
+        password: hashedPassword,
+        avatar: { url, public_id },
+      });
+  
+      await newUser.save();
+  
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        user: {
+          userName: newUser.userName,
+          email: newUser.email,
+          avatar: newUser.avatar,
+        },
+      });
     } catch (error) {
-        console.error("Registration error:", error.message);  // Log the specific error message
-        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+      console.error("Error during registration:", error.message);
+      res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-};
+  };
+  
+
 
 const Login = async (req, res) => {
     try {

@@ -7,9 +7,31 @@ const postRoutes = express.Router()
 postRoutes.post(
     '/post/upload',
     (req, res, next) => {
-        console.log("Route hit: /post/upload");
-        next();
-    },
+        try {
+          if (!req.file) {
+            return res.status(400).json({
+              success: false,
+              message: 'File is required for this request',
+            });
+          }
+    
+          const { caption } = req.body;
+          if (!caption || caption.trim() === '') {
+            return res.status(400).json({
+              success: false,
+              message: 'Caption is required for this request',
+            });
+          }
+          next();
+        } catch (error) {
+          console.error('Error in validation middleware:', error.message);
+          return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+            error: error.message,
+          });
+        }
+      },
     jwtAuthMiddleware,
     upload,
     (req, res, next) => {
